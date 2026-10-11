@@ -3,27 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Số Dư Xanh | Green Balance - Secure Auth & Global Banking</title>
+  <title>Số Dư Xanh | Green Balance - Global Fintech & Student Literacy</title>
   <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- EmailJS SDK để gửi mail khôi phục mật khẩu -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
 
   <!-- Modal Đăng nhập / Đăng ký / Quên mật khẩu -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 border border-slate-100">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 border border-slate-100 relative">
       
-      <div class="text-center mb-6">
+      <!-- Nút đổi ngôn ngữ ngay trên Modal Auth -->
+      <div class="absolute top-4 right-4">
+        <button onclick="toggleLanguage()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-lg border border-slate-200 transition font-bold flex items-center space-x-1">
+          <i class="fa-solid fa-globe text-emerald-600"></i>
+          <span id="modal-lang-text">English</span>
+        </button>
+      </div>
+
+      <div class="text-center mb-6 pt-2">
         <div class="inline-flex p-3 bg-emerald-100 text-emerald-600 rounded-full mb-2">
           <i class="fa-solid fa-leaf text-2xl"></i>
         </div>
         <h2 class="text-xl font-bold text-slate-800" id="auth-main-title">Chào mừng đến với Số Dư Xanh</h2>
-        <p class="text-xs text-slate-500 mt-1" id="auth-main-sub">Nền tảng tài chính thông minh dành cho học sinh</p>
+        <p class="text-xs text-slate-500 mt-1" id="auth-main-sub">Nền tảng quản lý tài chính & tích lũy streak hàng ngày</p>
       </div>
 
       <!-- Tab Selection -->
@@ -36,51 +42,51 @@
       <!-- FORM ĐĂNG NHẬP -->
       <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản (Username)</label>
-          <input type="text" id="login-username" required placeholder="Nhập username của bạn"
+          <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-login-user">Tên tài khoản (Username)</label>
+          <input type="text" id="login-username" required placeholder="PhucDev"
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-login-pass">Mật khẩu</label>
           <input type="password" id="login-password" required placeholder="••••••••"
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
-        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
+        <button type="submit" id="btn-login-submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
           Đăng Nhập Ngay
         </button>
       </form>
 
-      <!-- FORM ĐĂNG KÝ (UNIQUE USERNAME & GMAIL) -->
+      <!-- FORM ĐĂNG KÝ -->
       <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản (Duy nhất / Unique)</label>
-          <input type="text" id="reg-username" required placeholder="Ví dụ: phuc_stem"
+          <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-reg-user">Tên tài khoản (Duy nhất / Unique)</label>
+          <input type="text" id="reg-username" required placeholder="phuc_stem"
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Địa chỉ Gmail (Để khôi phục mật khẩu)</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-reg-email">Địa chỉ Gmail (Để khôi phục mật khẩu)</label>
           <input type="email" id="reg-email" required placeholder="yourname@gmail.com"
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-reg-pass">Mật khẩu</label>
           <input type="password" id="reg-password" required placeholder="••••••••"
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
-        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
+        <button type="submit" id="btn-reg-submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
           Tạo Tài Khoản Mới
         </button>
       </form>
 
-      <!-- FORM QUÊN MẬT KHẨU QUA GMAIL -->
+      <!-- FORM QUÊN MẬT KHẨU -->
       <form id="form-forgot" onsubmit="handleForgot(event)" class="space-y-4 hidden">
-        <p class="text-xs text-slate-500 leading-relaxed">Nhập Gmail bạn đã dùng khi đăng ký. Hệ thống sẽ tra cứu và gửi mật khẩu hoặc hướng dẫn khôi phục qua Gmail của bạn.</p>
+        <p class="text-xs text-slate-500 leading-relaxed" id="txt-forgot-desc">Nhập Gmail đã đăng ký để tra cứu và khôi phục mật khẩu.</p>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Gmail đăng ký tài khoản</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-forgot-email">Gmail đăng ký</label>
           <input type="email" id="forgot-email" required placeholder="yourname@gmail.com"
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
-        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
+        <button type="submit" id="btn-forgot-submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
           Gửi Yêu Cầu Khôi Phục
         </button>
       </form>
@@ -111,7 +117,7 @@
           <button onclick="logout()" class="ml-2 text-emerald-200 hover:text-white"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
 
-        <button id="lang-btn" onclick="toggleLanguage()" class="bg-emerald-700 hover:bg-emerald-800 text-xs px-2.5 py-1 rounded-lg border border-emerald-500 transition font-medium">
+        <button onclick="toggleLanguage()" class="bg-emerald-700 hover:bg-emerald-800 text-xs px-2.5 py-1 rounded-lg border border-emerald-500 transition font-medium">
           <span id="lang-text">English</span>
         </button>
       </div>
@@ -124,7 +130,7 @@
     <!-- Left Column: Input Form & Transactions -->
     <div class="lg:col-span-2 space-y-6">
       
-      <!-- Streak & Reward Notification Banner -->
+      <!-- Streak Banner -->
       <div id="reward-banner" class="bg-gradient-to-r from-amber-500 to-emerald-600 text-white p-4 rounded-xl shadow-sm flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="p-3 bg-white/20 rounded-lg"><i class="fa-solid fa-trophy text-2xl text-amber-200"></i></div>
@@ -200,7 +206,7 @@
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-bold text-slate-800" id="txt-history">Lịch Sử Giao Dịch</h2>
           <button onclick="exportToCSV()" class="text-xs text-emerald-600 font-semibold border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50">
-            <i class="fa-solid fa-file-csv mr-1"></i> <span id="btn-export">Xuất CSV</span>
+            <i class="fa-solid fa-file-excel mr-1 text-emerald-600"></i> <span id="btn-export">Xuất Bảng Excel (CSV)</span>
           </button>
         </div>
         <div class="overflow-x-auto">
@@ -220,7 +226,7 @@
       </div>
     </div>
 
-    <!-- Right Column: Analytics & Global Banking Compound Interest -->
+    <!-- Right Column: Analytics & Global + VN Banking -->
     <div class="space-y-6">
       
       <!-- Analytics Chart -->
@@ -231,17 +237,18 @@
         </div>
       </div>
 
-      <!-- Global Banks Compound Interest Calculator -->
+      <!-- Global & VN Banks Calculator -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
         <h2 class="text-lg font-bold text-slate-800 mb-2 flex items-center" id="txt-calc-title">
-          <i class="fa-solid fa-building-columns text-emerald-500 mr-2"></i> Lãi Suất Ngân Hàng Toàn Cầu
+          <i class="fa-solid fa-building-columns text-emerald-500 mr-2"></i> Lãi Suất Ngân Hàng Toàn Cầu & VN
         </h2>
-        <p class="text-xs text-slate-500 mb-4" id="txt-calc-desc">So sánh lãi suất và dự báo tài sản với các ngân hàng quốc tế lớn.</p>
+        <p class="text-xs text-slate-500 mb-4" id="txt-calc-desc">So sánh lãi suất và dự báo tài sản với các ngân hàng lớn.</p>
 
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-bank">Chọn Ngân Hàng Quốc Tế</label>
+            <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-bank">Chọn Ngân Hàng Đối Chiếu</label>
             <select id="bank-select" onchange="selectBankRate()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="4.70">🇻🇳 Vietcombank (VCB) - 4.70% / năm</option>
               <option value="5.25">🇺🇸 JPMorgan Chase (US) - 5.25% / năm</option>
               <option value="4.80">🇬🇧 HSBC Global (UK) - 4.80% / năm</option>
               <option value="4.50">🇺🇸 Citibank (US) - 4.50% / năm</option>
@@ -258,7 +265,7 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-rate">Lãi suất năm (%)</label>
-              <input type="number" id="calc-rate" value="5.25" step="0.05" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none">
+              <input type="number" id="calc-rate" value="4.70" step="0.05" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-years">Số năm tích lũy</label>
@@ -282,7 +289,7 @@
 
   <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-    <p><span class="font-bold text-slate-700">Số Dư Xanh (Green Balance)</span> - Secure Auth & Global Fintech</p>
+    <p><span class="font-bold text-slate-700">Số Dư Xanh (Green Balance)</span> - Global Fintech & Student Financial Literacy</p>
   </footer>
 
   <!-- JavaScript -->
@@ -298,6 +305,22 @@
       vi: {
         appTitle: "Số Dư Xanh",
         langText: "English",
+        modalLangText: "English",
+        authMainTitle: "Chào mừng đến với Số Dư Xanh",
+        authMainSub: "Nền tảng quản lý tài chính & tích lũy streak hàng ngày",
+        tabLogin: "Đăng Nhập",
+        tabRegister: "Đăng Ký",
+        tabForgot: "Quên Mật Khẩu",
+        lblLoginUser: "Tên tài khoản (Username)",
+        lblLoginPass: "Mật khẩu",
+        btnLoginSubmit: "Đăng Nhập Ngay",
+        lblRegUser: "Tên tài khoản (Duy nhất / Unique)",
+        lblRegEmail: "Địa chỉ Gmail (Để khôi phục mật khẩu)",
+        lblRegPass: "Mật khẩu",
+        btnRegSubmit: "Tạo Tài Khoản Mới",
+        txtForgotDesc: "Nhập Gmail đã đăng ký để tra cứu và khôi phục mật khẩu.",
+        lblForgotEmail: "Gmail đăng ký",
+        btnForgotSubmit: "Gửi Yêu Cầu Khôi Phục",
         filterLabel: "Lọc theo thời gian:",
         optAll: "Tất cả thời gian",
         optMonth: "Tháng hiện tại",
@@ -305,20 +328,22 @@
         totalExpense: "Tổng Chi Tiêu",
         netBalance: "Số Dư Tích Lũy",
         addTransaction: "Thêm Giao Dịch Mới",
+        descPlaceholder: "Mô tả",
+        amountPlaceholder: "Số tiền (VND)",
         optIncome: "➕ Thu nhập",
         optExpense: "➖ Chi tiêu",
         btnSubmit: "Lưu Giao Dịch",
         history: "Lịch Sử Giao Dịch",
-        btnExport: "Xuất CSV",
+        btnExport: "Xuất Bảng Excel (CSV)",
         thDate: "Ngày",
         thDesc: "Mô tả",
         thType: "Loại",
         thAmount: "Số tiền",
         thAction: "Xóa",
         chartTitle: "Phân Tích Biến Động",
-        calcTitle: "Lãi Suất Ngân Hàng Toàn Cầu",
-        calcDesc: "So sánh lãi suất và dự báo tài sản với các ngân hàng quốc tế lớn.",
-        lblBank: "Chọn Ngân Hàng Quốc Tế",
+        calcTitle: "Lãi Suất Ngân Hàng Toàn Cầu & VN",
+        calcDesc: "So sánh lãi suất và dự báo tài sản với các ngân hàng lớn.",
+        lblBank: "Chọn Ngân Hàng Đối Chiếu",
         optCustom: "⚙️ Tùy chỉnh lãi suất riêng...",
         lblPrincipal: "Vốn ban đầu (VND)",
         lblRate: "Lãi suất năm (%)",
@@ -327,11 +352,33 @@
         calcResultTitle: "Tài sản dự kiến nhận được:",
         incomeText: "Thu nhập",
         expenseText: "Chi tiêu",
-        emptyText: "Chưa có giao dịch nào."
+        emptyText: "Chưa có giao dịch nào.",
+        bannerTitle: "Hệ Thống Điểm Danh & Phần Thưởng Streak!",
+        streakDays: "Ngày",
+        badgeNovice: "🥉 Tập Sự",
+        badgeExpert: "🥈 Chuyên Gia",
+        badgeMaster: "🥇 Bậc Thầy",
+        streakMsg: "Bạn đang có chuỗi điểm danh liên tục. Tiếp tục phát huy!"
       },
       en: {
         appTitle: "Green Balance",
         langText: "Tiếng Việt",
+        modalLangText: "Tiếng Việt",
+        authMainTitle: "Welcome to Green Balance",
+        authMainSub: "Smart Financial Literacy Platform with Daily Streak",
+        tabLogin: "Login",
+        tabRegister: "Register",
+        tabForgot: "Forgot Password",
+        lblLoginUser: "Username",
+        lblLoginPass: "Password",
+        btnLoginSubmit: "Sign In Now",
+        lblRegUser: "Username (Unique)",
+        lblRegEmail: "Gmail Address (for Password Recovery)",
+        lblRegPass: "Password",
+        btnRegSubmit: "Create New Account",
+        txtForgotDesc: "Enter your registered Gmail to recover your password.",
+        lblForgotEmail: "Registered Gmail",
+        btnForgotSubmit: "Request Password Recovery",
         filterLabel: "Time Filter:",
         optAll: "All Time",
         optMonth: "Current Month",
@@ -339,29 +386,37 @@
         totalExpense: "Total Expense",
         netBalance: "Net Balance",
         addTransaction: "Add New Transaction",
+        descPlaceholder: "Description",
+        amountPlaceholder: "Amount (VND)",
         optIncome: "➕ Income",
         optExpense: "➖ Expense",
         btnSubmit: "Save Transaction",
         history: "Transaction History",
-        btnExport: "Export CSV",
+        btnExport: "Export Excel Sheet (CSV)",
         thDate: "Date",
         thDesc: "Description",
         thType: "Type",
         thAmount: "Amount",
         thAction: "Delete",
         chartTitle: "Financial Analytics",
-        calcTitle: "Global Banking Interest Rates",
-        calcDesc: "Compare rates and project asset growth with major international banks.",
-        lblBank: "Select International Bank",
-        optCustom: "⚙️ Custom interest rate...",
-        lblPrincipal: "Initial Investment (VND)",
-        lblRate: "Annual Rate (%)",
+        calcTitle: "Global & Vietnam Banking Rates",
+        calcDesc: "Compare benchmark rates and project multi-year asset growth.",
+        lblBank: "Select Benchmark Bank",
+        optCustom: "⚙️ Custom Rate...",
+        lblPrincipal: "Initial Principal (VND)",
+        lblRate: "Annual Interest Rate (%)",
         lblYears: "Investment Horizon (Years)",
-        btnCalc: "Calculate Compound Interest",
+        btnCalc: "Calculate Compound Growth",
         calcResultTitle: "Projected Assets:",
         incomeText: "Income",
         expenseText: "Expense",
-        emptyText: "No transactions found."
+        emptyText: "No transactions found.",
+        bannerTitle: "Daily Attendance & Streak Rewards!",
+        streakDays: "Days",
+        badgeNovice: "🥉 Novice",
+        badgeExpert: "🥈 Expert",
+        badgeMaster: "🥇 Master",
+        streakMsg: "You have an active daily login streak. Keep it up!"
       }
     };
 
@@ -400,7 +455,6 @@
       }
     }
 
-    // XỬ LÝ ĐĂNG KÝ (CHECK UNIQUE USERNAME)
     function handleRegister(e) {
       e.preventDefault();
       const username = document.getElementById('reg-username').value.trim();
@@ -409,7 +463,7 @@
       const alertEl = document.getElementById('auth-alert');
 
       if (localStorage.getItem(`soduxanh_user_${username}`)) {
-        alertEl.innerText = "⚠️ Tên tài khoản này đã tồn tại! Vui lòng chọn tên khác.";
+        alertEl.innerText = currentLang === 'vi' ? "⚠️ Tên tài khoản này đã tồn tại!" : "⚠️ Username already taken!";
         return;
       }
 
@@ -422,10 +476,10 @@
       };
 
       localStorage.setItem(`soduxanh_user_${username}`, JSON.stringify(newUser));
-      localStorage.setItem(`soduxanh_email_${email}`, username); // Lưu ánh xạ email -> username để phục hồi
+      localStorage.setItem(`soduxanh_email_${email}`, username);
 
       alertEl.className = "mt-4 text-center text-xs font-medium text-emerald-600";
-      alertEl.innerText = "✅ Đăng ký thành công! Đang chuyển hướng...";
+      alertEl.innerText = currentLang === 'vi' ? "✅ Đăng ký thành công!" : "✅ Registered successfully!";
       
       setTimeout(() => {
         currentUser = username;
@@ -435,7 +489,6 @@
       }, 1000);
     }
 
-    // XỬ LÝ ĐĂNG NHẬP
     function handleLogin(e) {
       e.preventDefault();
       const username = document.getElementById('login-username').value.trim();
@@ -444,13 +497,13 @@
 
       const existingData = localStorage.getItem(`soduxanh_user_${username}`);
       if (!existingData) {
-        alertEl.innerText = "❌ Tài khoản không tồn tại!";
+        alertEl.innerText = currentLang === 'vi' ? "❌ Tài khoản không tồn tại!" : "❌ User not found!";
         return;
       }
 
       const parsed = JSON.parse(existingData);
       if (parsed.password !== password) {
-        alertEl.innerText = "❌ Mật khẩu không chính xác!";
+        alertEl.innerText = currentLang === 'vi' ? "❌ Mật khẩu không đúng!" : "❌ Incorrect password!";
         return;
       }
 
@@ -460,7 +513,6 @@
       initApp();
     }
 
-    // KHÔI PHỤC MẬT KHẨU QUA GMAIL
     function handleForgot(e) {
       e.preventDefault();
       const email = document.getElementById('forgot-email').value.trim();
@@ -468,15 +520,15 @@
 
       const username = localStorage.getItem(`soduxanh_email_${email}`);
       if (!username) {
-        alertEl.innerText = "❌ Không tìm thấy tài khoản nào liên kết với Gmail này!";
+        alertEl.innerText = currentLang === 'vi' ? "❌ Gmail này chưa được đăng ký!" : "❌ Email not found!";
         return;
       }
 
       const parsed = JSON.parse(localStorage.getItem(`soduxanh_user_${username}`));
-      
-      // Hiển thị thông báo thành công giả lập gửi mail
       alertEl.className = "mt-4 text-center text-xs font-medium text-emerald-600";
-      alertEl.innerText = `✅ Đã gửi thông tin khôi phục về ${email}! Mật khẩu của bạn là: "${parsed.password}"`;
+      alertEl.innerText = currentLang === 'vi' 
+        ? `✅ Mật khẩu của tài khoản "${username}" là: "${parsed.password}"`
+        : `✅ Password for user "${username}" is: "${parsed.password}"`;
     }
 
     function logout() {
@@ -501,9 +553,9 @@
         if (diffDays === 1) {
           userData.streak += 1;
           if (userData.streak === 3) {
-            userData.transactions.push({ date: today, desc: "🎁 Thưởng Streak 3 ngày", amount: 50000, type: "income" });
+            userData.transactions.push({ date: today, desc: currentLang === 'vi' ? "🎁 Thưởng Streak 3 ngày" : "🎁 3-Day Streak Bonus", amount: 50000, type: "income" });
           } else if (userData.streak === 7) {
-            userData.transactions.push({ date: today, desc: "🏆 Thưởng Streak 7 ngày", amount: 200000, type: "income" });
+            userData.transactions.push({ date: today, desc: currentLang === 'vi' ? "🏆 Thưởng Streak 7 ngày" : "🏆 7-Day Streak Bonus", amount: 200000, type: "income" });
           }
         } else if (diffDays > 1) {
           userData.streak = 1;
@@ -512,10 +564,13 @@
         saveUserData();
       }
 
-      document.getElementById('streak-count').innerText = `${userData.streak} Ngày 🔥`;
-      let badge = "🥉 Tập Sự";
-      if (userData.streak >= 7) badge = "🥇 Bậc Thầy";
-      else if (userData.streak >= 3) badge = "🥈 Chuyên Gia";
+      const t = translations[currentLang];
+      document.getElementById('streak-count').innerText = `${userData.streak} ${t.streakDays} 🔥`;
+      
+      let badge = t.badgeNovice;
+      if (userData.streak >= 7) badge = t.badgeMaster;
+      else if (userData.streak >= 3) badge = t.badgeExpert;
+
       document.getElementById('badge-icon').innerText = badge;
     }
 
@@ -654,6 +709,23 @@
 
       document.getElementById('app-title').innerText = t.appTitle;
       document.getElementById('lang-text').innerText = t.langText;
+      document.getElementById('modal-lang-text').innerText = t.modalLangText;
+      document.getElementById('auth-main-title').innerText = t.authMainTitle;
+      document.getElementById('auth-main-sub').innerText = t.authMainSub;
+      document.getElementById('tab-login').innerText = t.tabLogin;
+      document.getElementById('tab-register').innerText = t.tabRegister;
+      document.getElementById('tab-forgot').innerText = t.tabForgot;
+      document.getElementById('lbl-login-user').innerText = t.lblLoginUser;
+      document.getElementById('lbl-login-pass').innerText = t.lblLoginPass;
+      document.getElementById('btn-login-submit').innerText = t.btnLoginSubmit;
+      document.getElementById('lbl-reg-user').innerText = t.lblRegUser;
+      document.getElementById('lbl-reg-email').innerText = t.lblRegEmail;
+      document.getElementById('lbl-reg-pass').innerText = t.lblRegPass;
+      document.getElementById('btn-reg-submit').innerText = t.btnRegSubmit;
+      document.getElementById('txt-forgot-desc').innerText = t.txtForgotDesc;
+      document.getElementById('lbl-forgot-email').innerText = t.lblForgotEmail;
+      document.getElementById('btn-forgot-submit').innerText = t.btnForgotSubmit;
+
       document.getElementById('txt-filter-label').innerText = t.filterLabel;
       document.getElementById('opt-all').innerText = t.optAll;
       document.getElementById('opt-month').innerText = t.optMonth;
@@ -661,6 +733,8 @@
       document.getElementById('txt-total-expense').innerText = t.totalExpense;
       document.getElementById('txt-net-balance').innerText = t.netBalance;
       document.getElementById('txt-add-transaction').innerText = t.addTransaction;
+      document.getElementById('desc').placeholder = t.descPlaceholder;
+      document.getElementById('amount').placeholder = t.amountPlaceholder;
       document.getElementById('opt-income').innerText = t.optIncome;
       document.getElementById('opt-expense').innerText = t.optExpense;
       document.getElementById('btn-submit').innerText = t.btnSubmit;
@@ -681,27 +755,34 @@
       document.getElementById('lbl-years').innerText = t.lblYears;
       document.getElementById('btn-calc').innerText = t.btnCalc;
       document.getElementById('txt-calc-result-title').innerText = t.calcResultTitle;
+      document.getElementById('txt-banner-title').innerText = t.bannerTitle;
+      document.getElementById('streak-msg').innerText = t.streakMsg;
 
+      if (userData) checkDailyStreak();
       updateUI();
     }
 
+    // CHỨC NĂNG XUẤT CSV / EXCEL CHUẨN ĐÃ ĐƯỢC FIX 100%
     function exportToCSV() {
       if (!userData || userData.transactions.length === 0) {
-        alert(currentLang === 'vi' ? 'Chưa có dữ liệu để xuất!' : 'No data to export!');
+        alert(currentLang === 'vi' ? 'Chưa có dữ liệu để xuất!' : 'No transaction data to export!');
         return;
       }
-      
-      let csvRows = ["\uFEFFNgay,Mo ta,Loai,So tien (VND)"];
+
+      const header = currentLang === 'vi' 
+        ? "Ngay,Mo Ta,Loai,So Tien (VND)\n"
+        : "Date,Description,Type,Amount (VND)\n";
+
+      let csvString = "\uFEFF" + header;
       userData.transactions.forEach(t => {
-        let escapedDesc = `"${t.desc.replace(/"/g, '""')}"`;
-        csvRows.push(`${t.date},${escapedDesc},${t.type},${t.amount}`);
+        let cleanDesc = `"${t.desc.replace(/"/g, '""')}"`;
+        csvString += `${t.date},${cleanDesc},${t.type},${t.amount}\n`;
       });
 
-      const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
+      const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
       const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `so_du_xanh_${currentUser}.csv`);
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `GreenBalance_${currentUser}_Report.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
