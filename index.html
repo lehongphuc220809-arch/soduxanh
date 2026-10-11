@@ -3,41 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Số Dư Xanh | Green Balance - Financial Literacy App</title>
+  <title>Số Dư Xanh | Green Balance - Secure Auth & Global Banking</title>
   <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Chart.js for Data Visualization -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- EmailJS SDK để gửi mail khôi phục mật khẩu -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
 
+  <!-- Modal Đăng nhập / Đăng ký / Quên mật khẩu -->
+  <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 border border-slate-100">
+      
+      <div class="text-center mb-6">
+        <div class="inline-flex p-3 bg-emerald-100 text-emerald-600 rounded-full mb-2">
+          <i class="fa-solid fa-leaf text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-bold text-slate-800" id="auth-main-title">Chào mừng đến với Số Dư Xanh</h2>
+        <p class="text-xs text-slate-500 mt-1" id="auth-main-sub">Nền tảng tài chính thông minh dành cho học sinh</p>
+      </div>
+
+      <!-- Tab Selection -->
+      <div class="flex border-b border-slate-200 mb-4 text-xs font-semibold">
+        <button onclick="switchAuthTab('login')" id="tab-login" class="flex-1 pb-2 text-emerald-600 border-b-2 border-emerald-600 transition">Đăng Nhập</button>
+        <button onclick="switchAuthTab('register')" id="tab-register" class="flex-1 pb-2 text-slate-400 hover:text-slate-600 transition">Đăng Ký</button>
+        <button onclick="switchAuthTab('forgot')" id="tab-forgot" class="flex-1 pb-2 text-slate-400 hover:text-slate-600 transition">Quên Mật Khẩu</button>
+      </div>
+
+      <!-- FORM ĐĂNG NHẬP -->
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản (Username)</label>
+          <input type="text" id="login-username" required placeholder="Nhập username của bạn"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
+          <input type="password" id="login-password" required placeholder="••••••••"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
+          Đăng Nhập Ngay
+        </button>
+      </form>
+
+      <!-- FORM ĐĂNG KÝ (UNIQUE USERNAME & GMAIL) -->
+      <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản (Duy nhất / Unique)</label>
+          <input type="text" id="reg-username" required placeholder="Ví dụ: phuc_stem"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Địa chỉ Gmail (Để khôi phục mật khẩu)</label>
+          <input type="email" id="reg-email" required placeholder="yourname@gmail.com"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
+          <input type="password" id="reg-password" required placeholder="••••••••"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
+          Tạo Tài Khoản Mới
+        </button>
+      </form>
+
+      <!-- FORM QUÊN MẬT KHẨU QUA GMAIL -->
+      <form id="form-forgot" onsubmit="handleForgot(event)" class="space-y-4 hidden">
+        <p class="text-xs text-slate-500 leading-relaxed">Nhập Gmail bạn đã dùng khi đăng ký. Hệ thống sẽ tra cứu và gửi mật khẩu hoặc hướng dẫn khôi phục qua Gmail của bạn.</p>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Gmail đăng ký tài khoản</label>
+          <input type="email" id="forgot-email" required placeholder="yourname@gmail.com"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-sm">
+          Gửi Yêu Cầu Khôi Phục
+        </button>
+      </form>
+
+      <div id="auth-alert" class="mt-4 text-center text-xs font-medium text-rose-500"></div>
+    </div>
+  </div>
+
   <!-- Navigation Bar -->
-  <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+  <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-3">
         <i class="fa-solid fa-leaf text-2xl text-emerald-200"></i>
-        <h1 class="text-xl md:text-2xl font-bold tracking-tight" id="app-title">Số Dư Xanh</h1>
+        <h1 class="text-lg md:text-xl font-bold tracking-tight" id="app-title">Số Dư Xanh</h1>
       </div>
+      
       <div class="flex items-center space-x-3">
-        <button id="lang-btn" onclick="toggleLanguage()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3 py-1.5 rounded-lg border border-emerald-500 transition font-medium">
-          <i class="fa-solid fa-globe mr-1"></i> <span id="lang-text">English</span>
+        <!-- Streak Display Badge -->
+        <div class="bg-emerald-800/60 border border-emerald-400/40 px-3 py-1 rounded-full flex items-center space-x-1.5 text-xs font-bold text-amber-300">
+          <i class="fa-solid fa-fire text-amber-400 text-sm animate-pulse"></i>
+          <span id="streak-count">0 Ngày</span>
+        </div>
+
+        <!-- User Info & Logout -->
+        <div id="user-display" class="hidden flex items-center space-x-2 bg-emerald-700 px-3 py-1 rounded-lg text-xs font-medium">
+          <i class="fa-solid fa-circle-user"></i>
+          <span id="username-text">User</span>
+          <button onclick="logout()" class="ml-2 text-emerald-200 hover:text-white"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+
+        <button id="lang-btn" onclick="toggleLanguage()" class="bg-emerald-700 hover:bg-emerald-800 text-xs px-2.5 py-1 rounded-lg border border-emerald-500 transition font-medium">
+          <span id="lang-text">English</span>
         </button>
       </div>
     </div>
   </header>
 
   <!-- Main Container -->
-  <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6">
     
     <!-- Left Column: Input Form & Transactions -->
     <div class="lg:col-span-2 space-y-6">
       
+      <!-- Streak & Reward Notification Banner -->
+      <div id="reward-banner" class="bg-gradient-to-r from-amber-500 to-emerald-600 text-white p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="p-3 bg-white/20 rounded-lg"><i class="fa-solid fa-trophy text-2xl text-amber-200"></i></div>
+          <div>
+            <h3 class="font-bold text-sm" id="txt-banner-title">Hệ Thống Điểm Danh & Phần Thưởng Streak!</h3>
+            <p class="text-xs opacity-90" id="streak-msg">Điểm danh mỗi ngày để nhận thưởng tích lũy tài chính tự động.</p>
+          </div>
+        </div>
+        <div id="badge-icon" class="text-2xl font-black">🥉</div>
+      </div>
+
+      <!-- Time Filter Bar -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-filter text-emerald-600"></i>
+          <span class="text-sm font-bold text-slate-700" id="txt-filter-label">Lọc theo thời gian:</span>
+        </div>
+        <select id="filter-select" onchange="updateUI()" class="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <option value="all" id="opt-all">Tất cả thời gian</option>
+          <option value="current_month" id="opt-month">Tháng hiện tại</option>
+          <option value="2026">Năm 2026</option>
+        </select>
+      </div>
+
       <!-- Financial Overview Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider" id="txt-total-income">Tổng Thu Nhập</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase" id="txt-total-income">Tổng Thu Nhập</p>
             <p class="text-xl font-extrabold text-emerald-600 mt-1" id="total-income">0 ₫</p>
           </div>
           <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-arrow-down-long text-lg"></i></div>
@@ -45,7 +161,7 @@
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider" id="txt-total-expense">Tổng Chi Tiêu</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase" id="txt-total-expense">Tổng Chi Tiêu</p>
             <p class="text-xl font-extrabold text-rose-500 mt-1" id="total-expense">0 ₫</p>
           </div>
           <div class="p-3 bg-rose-50 text-rose-500 rounded-lg"><i class="fa-solid fa-arrow-up-long text-lg"></i></div>
@@ -53,7 +169,7 @@
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider" id="txt-net-balance">Số Dư Hiện Tại</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase" id="txt-net-balance">Số Dư Tích Lũy</p>
             <p class="text-xl font-extrabold text-slate-800 mt-1" id="net-balance">0 ₫</p>
           </div>
           <div class="p-3 bg-slate-100 text-slate-600 rounded-lg"><i class="fa-solid fa-wallet text-lg"></i></div>
@@ -66,18 +182,14 @@
           <i class="fa-solid fa-circle-plus text-emerald-500 mr-2"></i> Thêm Giao Dịch Mới
         </h2>
         <form id="transaction-form" onsubmit="addTransaction(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-          <input type="text" id="desc" placeholder="Mô tả (Ví dụ: Tiền ăn sáng, Bán sáchเก่า)" required
-            class="sm:col-span-5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
-          
-          <input type="number" id="amount" placeholder="Số tiền (VND)" required min="1"
-            class="sm:col-span-4 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
-          
-          <select id="type" class="sm:col-span-3 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium">
+          <input type="date" id="date" required class="sm:col-span-4 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="text" id="desc" placeholder="Mô tả" required class="sm:col-span-8 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="number" id="amount" placeholder="Số tiền (VND)" required min="1" class="sm:col-span-7 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <select id="type" class="sm:col-span-5 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
             <option value="income" id="opt-income">➕ Thu nhập</option>
             <option value="expense" id="opt-expense">➖ Chi tiêu</option>
           </select>
-
-          <button type="submit" class="sm:col-span-12 w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition shadow-sm text-sm">
+          <button type="submit" class="sm:col-span-12 w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition text-sm">
             <i class="fa-solid fa-check mr-1"></i> <span id="btn-submit">Lưu Giao Dịch</span>
           </button>
         </form>
@@ -87,67 +199,79 @@
       <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-bold text-slate-800" id="txt-history">Lịch Sử Giao Dịch</h2>
-          <button onclick="exportToCSV()" class="text-xs text-emerald-600 hover:text-emerald-700 font-semibold border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition">
+          <button onclick="exportToCSV()" class="text-xs text-emerald-600 font-semibold border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50">
             <i class="fa-solid fa-file-csv mr-1"></i> <span id="btn-export">Xuất CSV</span>
           </button>
         </div>
-        
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-sm">
             <thead>
               <tr class="border-b border-slate-100 text-slate-400 font-semibold text-xs uppercase">
+                <th class="pb-3" id="th-date">Ngày</th>
                 <th class="pb-3" id="th-desc">Mô tả</th>
                 <th class="pb-3" id="th-type">Loại</th>
                 <th class="pb-3 text-right" id="th-amount">Số tiền</th>
                 <th class="pb-3 text-center" id="th-action">Xóa</th>
               </tr>
             </thead>
-            <tbody id="transaction-list" class="divide-y divide-slate-100">
-              <!-- Dynamic Rows Inserted Here -->
-            </tbody>
+            <tbody id="transaction-list" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Right Column: Analytics & Compound Interest Calculator -->
+    <!-- Right Column: Analytics & Global Banking Compound Interest -->
     <div class="space-y-6">
       
       <!-- Analytics Chart -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h2 class="text-lg font-bold text-slate-800 mb-4" id="txt-chart-title">Phân Tích Thu Chi</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-4" id="txt-chart-title">Phân Tích Biến Động</h2>
         <div class="relative flex justify-center items-center h-48">
           <canvas id="financeChart"></canvas>
         </div>
       </div>
 
-      <!-- Compound Interest Calculator -->
+      <!-- Global Banks Compound Interest Calculator -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
         <h2 class="text-lg font-bold text-slate-800 mb-2 flex items-center" id="txt-calc-title">
-          <i class="fa-solid fa-chart-line text-emerald-500 mr-2"></i> Công Cụ Lãi Kép STEM
+          <i class="fa-solid fa-building-columns text-emerald-500 mr-2"></i> Lãi Suất Ngân Hàng Toàn Cầu
         </h2>
-        <p class="text-xs text-slate-500 mb-4" id="txt-calc-desc">Tính toán giá trị tài sản tương lai thông qua sức mạnh lãi kép.</p>
+        <p class="text-xs text-slate-500 mb-4" id="txt-calc-desc">So sánh lãi suất và dự báo tài sản với các ngân hàng quốc tế lớn.</p>
 
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-principal">Số tiền ban đầu (VND)</label>
-            <input type="number" id="calc-principal" value="1000000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-rate">Lãi suất hàng năm (%)</label>
-            <input type="number" id="calc-rate" value="7" step="0.1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-years">Thời gian tích lũy (Năm)</label>
-            <input type="number" id="calc-years" value="5" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-bank">Chọn Ngân Hàng Quốc Tế</label>
+            <select id="bank-select" onchange="selectBankRate()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="5.25">🇺🇸 JPMorgan Chase (US) - 5.25% / năm</option>
+              <option value="4.80">🇬🇧 HSBC Global (UK) - 4.80% / năm</option>
+              <option value="4.50">🇺🇸 Citibank (US) - 4.50% / năm</option>
+              <option value="5.00">🇬🇧 Standard Chartered (UK) - 5.00% / năm</option>
+              <option value="custom" id="opt-custom">⚙️ Tùy chỉnh lãi suất riêng...</option>
+            </select>
           </div>
 
-          <button onclick="calculateCompoundInterest()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-lg transition shadow-sm text-sm mt-2">
-            <i class="fa-solid fa-calculator mr-1"></i> <span id="btn-calc">Tính Toán</span>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-principal">Vốn ban đầu (VND)</label>
+            <input type="number" id="calc-principal" value="5000000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-rate">Lãi suất năm (%)</label>
+              <input type="number" id="calc-rate" value="5.25" step="0.05" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" id="lbl-years">Số năm tích lũy</label>
+              <input type="number" id="calc-years" value="5" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none">
+            </div>
+          </div>
+
+          <button onclick="calculateCompoundInterest()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+            <span id="btn-calc">Tính Toán Lãi Kép</span>
           </button>
 
           <div class="mt-4 p-4 bg-emerald-50 border border-emerald-100 rounded-lg text-center">
-            <p class="text-xs text-emerald-700 font-medium" id="txt-calc-result-title">Giá trị dự kiến nhận được:</p>
+            <p class="text-xs text-emerald-700 font-medium" id="txt-calc-result-title">Tài sản dự kiến nhận được:</p>
             <p class="text-xl font-black text-emerald-700 mt-1" id="calc-result">0 ₫</p>
           </div>
         </div>
@@ -158,47 +282,49 @@
 
   <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-    <div class="max-w-6xl mx-auto px-4 space-y-1">
-      <p><span class="font-bold text-slate-700">Số Dư Xanh (Green Balance)</span> - A STEM Financial Literacy Project</p>
-      <p>Built with HTML5, Tailwind CSS, & JavaScript ES6.</p>
-    </div>
+    <p><span class="font-bold text-slate-700">Số Dư Xanh (Green Balance)</span> - Secure Auth & Global Fintech</p>
   </footer>
 
-  <!-- Application Logic (JavaScript) -->
+  <!-- JavaScript -->
   <script>
-    // App State
-    let transactions = JSON.parse(localStorage.getItem('soduxanh_transactions')) || [];
+    let currentUser = localStorage.getItem('soduxanh_current_user') || null;
+    let userData = currentUser ? JSON.parse(localStorage.getItem(`soduxanh_user_${currentUser}`)) : null;
     let currentLang = 'vi';
     let myChart = null;
 
-    // Translations Dictionary
+    document.getElementById('date').value = new Date().toISOString().substring(0, 10);
+
     const translations = {
       vi: {
         appTitle: "Số Dư Xanh",
         langText: "English",
+        filterLabel: "Lọc theo thời gian:",
+        optAll: "Tất cả thời gian",
+        optMonth: "Tháng hiện tại",
         totalIncome: "Tổng Thu Nhập",
         totalExpense: "Tổng Chi Tiêu",
-        netBalance: "Số Dư Hiện Tại",
+        netBalance: "Số Dư Tích Lũy",
         addTransaction: "Thêm Giao Dịch Mới",
-        descPlaceholder: "Mô tả (Ví dụ: Tiền ăn sáng, Bán sáchเก่า)",
-        amountPlaceholder: "Số tiền (VND)",
         optIncome: "➕ Thu nhập",
         optExpense: "➖ Chi tiêu",
         btnSubmit: "Lưu Giao Dịch",
         history: "Lịch Sử Giao Dịch",
         btnExport: "Xuất CSV",
+        thDate: "Ngày",
         thDesc: "Mô tả",
         thType: "Loại",
         thAmount: "Số tiền",
         thAction: "Xóa",
-        chartTitle: "Phân Tích Thu Chi",
-        calcTitle: "Công Cụ Lãi Kép STEM",
-        calcDesc: "Tính toán giá trị tài sản tương lai thông qua sức mạnh lãi kép.",
-        lblPrincipal: "Số tiền ban đầu (VND)",
-        lblRate: "Lãi suất hàng năm (%)",
-        lblYears: "Thời gian tích lũy (Năm)",
-        btnCalc: "Tính Toán",
-        calcResultTitle: "Giá trị dự kiến nhận được:",
+        chartTitle: "Phân Tích Biến Động",
+        calcTitle: "Lãi Suất Ngân Hàng Toàn Cầu",
+        calcDesc: "So sánh lãi suất và dự báo tài sản với các ngân hàng quốc tế lớn.",
+        lblBank: "Chọn Ngân Hàng Quốc Tế",
+        optCustom: "⚙️ Tùy chỉnh lãi suất riêng...",
+        lblPrincipal: "Vốn ban đầu (VND)",
+        lblRate: "Lãi suất năm (%)",
+        lblYears: "Số năm tích lũy",
+        btnCalc: "Tính Toán Lãi Kép",
+        calcResultTitle: "Tài sản dự kiến nhận được:",
         incomeText: "Thu nhập",
         expenseText: "Chi tiêu",
         emptyText: "Chưa có giao dịch nào."
@@ -206,53 +332,235 @@
       en: {
         appTitle: "Green Balance",
         langText: "Tiếng Việt",
+        filterLabel: "Time Filter:",
+        optAll: "All Time",
+        optMonth: "Current Month",
         totalIncome: "Total Income",
         totalExpense: "Total Expense",
         netBalance: "Net Balance",
         addTransaction: "Add New Transaction",
-        descPlaceholder: "Description (e.g. Allowance, Book Sale)",
-        amountPlaceholder: "Amount (VND)",
         optIncome: "➕ Income",
         optExpense: "➖ Expense",
         btnSubmit: "Save Transaction",
         history: "Transaction History",
         btnExport: "Export CSV",
+        thDate: "Date",
         thDesc: "Description",
         thType: "Type",
         thAmount: "Amount",
         thAction: "Delete",
-        chartTitle: "Income vs Expense Analytics",
-        calcTitle: "STEM Compound Calculator",
-        calcDesc: "Calculate future asset value through the power of compounding.",
+        chartTitle: "Financial Analytics",
+        calcTitle: "Global Banking Interest Rates",
+        calcDesc: "Compare rates and project asset growth with major international banks.",
+        lblBank: "Select International Bank",
+        optCustom: "⚙️ Custom interest rate...",
         lblPrincipal: "Initial Investment (VND)",
-        lblRate: "Annual Interest Rate (%)",
+        lblRate: "Annual Rate (%)",
         lblYears: "Investment Horizon (Years)",
-        btnCalc: "Calculate",
-        calcResultTitle: "Estimated Future Value:",
+        btnCalc: "Calculate Compound Interest",
+        calcResultTitle: "Projected Assets:",
         incomeText: "Income",
         expenseText: "Expense",
-        emptyText: "No transactions recorded yet."
+        emptyText: "No transactions found."
       }
     };
 
-    // Format Currency
+    function initApp() {
+      if (!currentUser) {
+        document.getElementById('auth-modal').classList.remove('hidden');
+      } else {
+        document.getElementById('auth-modal').classList.add('hidden');
+        document.getElementById('user-display').classList.remove('hidden');
+        document.getElementById('username-text').innerText = currentUser;
+        checkDailyStreak();
+        updateUI();
+        calculateCompoundInterest();
+      }
+    }
+
+    function switchAuthTab(tab) {
+      document.getElementById('form-login').classList.add('hidden');
+      document.getElementById('form-register').classList.add('hidden');
+      document.getElementById('form-forgot').classList.add('hidden');
+      
+      document.getElementById('tab-login').className = "flex-1 pb-2 text-slate-400 transition";
+      document.getElementById('tab-register').className = "flex-1 pb-2 text-slate-400 transition";
+      document.getElementById('tab-forgot').className = "flex-1 pb-2 text-slate-400 transition";
+      document.getElementById('auth-alert').innerText = "";
+
+      if (tab === 'login') {
+        document.getElementById('form-login').classList.remove('hidden');
+        document.getElementById('tab-login').className = "flex-1 pb-2 text-emerald-600 border-b-2 border-emerald-600 font-semibold transition";
+      } else if (tab === 'register') {
+        document.getElementById('form-register').classList.remove('hidden');
+        document.getElementById('tab-register').className = "flex-1 pb-2 text-emerald-600 border-b-2 border-emerald-600 font-semibold transition";
+      } else if (tab === 'forgot') {
+        document.getElementById('form-forgot').classList.remove('hidden');
+        document.getElementById('tab-forgot').className = "flex-1 pb-2 text-emerald-600 border-b-2 border-emerald-600 font-semibold transition";
+      }
+    }
+
+    // XỬ LÝ ĐĂNG KÝ (CHECK UNIQUE USERNAME)
+    function handleRegister(e) {
+      e.preventDefault();
+      const username = document.getElementById('reg-username').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value.trim();
+      const alertEl = document.getElementById('auth-alert');
+
+      if (localStorage.getItem(`soduxanh_user_${username}`)) {
+        alertEl.innerText = "⚠️ Tên tài khoản này đã tồn tại! Vui lòng chọn tên khác.";
+        return;
+      }
+
+      const newUser = {
+        email: email,
+        password: password,
+        streak: 1,
+        lastLogin: new Date().toISOString().substring(0, 10),
+        transactions: []
+      };
+
+      localStorage.setItem(`soduxanh_user_${username}`, JSON.stringify(newUser));
+      localStorage.setItem(`soduxanh_email_${email}`, username); // Lưu ánh xạ email -> username để phục hồi
+
+      alertEl.className = "mt-4 text-center text-xs font-medium text-emerald-600";
+      alertEl.innerText = "✅ Đăng ký thành công! Đang chuyển hướng...";
+      
+      setTimeout(() => {
+        currentUser = username;
+        userData = newUser;
+        localStorage.setItem('soduxanh_current_user', currentUser);
+        initApp();
+      }, 1000);
+    }
+
+    // XỬ LÝ ĐĂNG NHẬP
+    function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      const alertEl = document.getElementById('auth-alert');
+
+      const existingData = localStorage.getItem(`soduxanh_user_${username}`);
+      if (!existingData) {
+        alertEl.innerText = "❌ Tài khoản không tồn tại!";
+        return;
+      }
+
+      const parsed = JSON.parse(existingData);
+      if (parsed.password !== password) {
+        alertEl.innerText = "❌ Mật khẩu không chính xác!";
+        return;
+      }
+
+      currentUser = username;
+      userData = parsed;
+      localStorage.setItem('soduxanh_current_user', currentUser);
+      initApp();
+    }
+
+    // KHÔI PHỤC MẬT KHẨU QUA GMAIL
+    function handleForgot(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value.trim();
+      const alertEl = document.getElementById('auth-alert');
+
+      const username = localStorage.getItem(`soduxanh_email_${email}`);
+      if (!username) {
+        alertEl.innerText = "❌ Không tìm thấy tài khoản nào liên kết với Gmail này!";
+        return;
+      }
+
+      const parsed = JSON.parse(localStorage.getItem(`soduxanh_user_${username}`));
+      
+      // Hiển thị thông báo thành công giả lập gửi mail
+      alertEl.className = "mt-4 text-center text-xs font-medium text-emerald-600";
+      alertEl.innerText = `✅ Đã gửi thông tin khôi phục về ${email}! Mật khẩu của bạn là: "${parsed.password}"`;
+    }
+
+    function logout() {
+      localStorage.removeItem('soduxanh_current_user');
+      currentUser = null;
+      userData = null;
+      document.getElementById('auth-modal').classList.remove('hidden');
+      document.getElementById('user-display').classList.add('hidden');
+      switchAuthTab('login');
+    }
+
+    function checkDailyStreak() {
+      if (!userData) return;
+      const today = new Date().toISOString().substring(0, 10);
+      const lastLogin = userData.lastLogin;
+
+      if (lastLogin !== today) {
+        const lastDate = new Date(lastLogin);
+        const currentDate = new Date(today);
+        const diffDays = Math.round((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          userData.streak += 1;
+          if (userData.streak === 3) {
+            userData.transactions.push({ date: today, desc: "🎁 Thưởng Streak 3 ngày", amount: 50000, type: "income" });
+          } else if (userData.streak === 7) {
+            userData.transactions.push({ date: today, desc: "🏆 Thưởng Streak 7 ngày", amount: 200000, type: "income" });
+          }
+        } else if (diffDays > 1) {
+          userData.streak = 1;
+        }
+        userData.lastLogin = today;
+        saveUserData();
+      }
+
+      document.getElementById('streak-count').innerText = `${userData.streak} Ngày 🔥`;
+      let badge = "🥉 Tập Sự";
+      if (userData.streak >= 7) badge = "🥇 Bậc Thầy";
+      else if (userData.streak >= 3) badge = "🥈 Chuyên Gia";
+      document.getElementById('badge-icon').innerText = badge;
+    }
+
+    function saveUserData() {
+      if (currentUser && userData) {
+        localStorage.setItem(`soduxanh_user_${currentUser}`, JSON.stringify(userData));
+      }
+    }
+
+    function selectBankRate() {
+      const val = document.getElementById('bank-select').value;
+      if (val !== 'custom') {
+        document.getElementById('calc-rate').value = val;
+        calculateCompoundInterest();
+      }
+    }
+
     function formatCurrency(num) {
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
     }
 
-    // Save & Render Transactions
     function updateUI() {
-      localStorage.setItem('soduxanh_transactions', JSON.stringify(transactions));
+      if (!userData) return;
+      const filter = document.getElementById('filter-select').value;
+      const now = new Date();
+
+      let filtered = userData.transactions.filter(t => {
+        const tDate = new Date(t.date);
+        if (filter === 'all') return true;
+        if (filter === 'current_month') {
+          return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+        }
+        return tDate.getFullYear().toString() === filter;
+      });
+
       const listEl = document.getElementById('transaction-list');
       listEl.innerHTML = '';
-
       let totalInc = 0;
       let totalExp = 0;
 
-      if (transactions.length === 0) {
-        listEl.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 italic">${translations[currentLang].emptyText}</td></tr>`;
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400 italic">${translations[currentLang].emptyText}</td></tr>`;
       } else {
-        transactions.forEach((item, index) => {
+        filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((item) => {
+          const originalIndex = userData.transactions.indexOf(item);
           if (item.type === 'income') totalInc += item.amount;
           else totalExp += item.amount;
 
@@ -260,6 +568,7 @@
           const row = document.createElement('tr');
           row.className = "hover:bg-slate-50 transition";
           row.innerHTML = `
+            <td class="py-3 font-medium text-slate-500 text-xs">${item.date}</td>
             <td class="py-3 font-medium text-slate-700">${item.desc}</td>
             <td class="py-3">
               <span class="px-2 py-1 text-xs rounded-md font-semibold ${isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
@@ -270,7 +579,7 @@
               ${isIncome ? '+' : '-'}${formatCurrency(item.amount)}
             </td>
             <td class="py-3 text-center">
-              <button onclick="deleteTransaction(${index})" class="text-slate-300 hover:text-rose-500 transition px-2">
+              <button onclick="deleteTransaction(${originalIndex})" class="text-slate-300 hover:text-rose-500 transition px-2">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </td>
@@ -282,31 +591,31 @@
       document.getElementById('total-income').innerText = formatCurrency(totalInc);
       document.getElementById('total-expense').innerText = formatCurrency(totalExp);
       document.getElementById('net-balance').innerText = formatCurrency(totalInc - totalExp);
-
       updateChart(totalInc, totalExp);
     }
 
-    // Add Transaction
     function addTransaction(e) {
       e.preventDefault();
+      const date = document.getElementById('date').value;
       const desc = document.getElementById('desc').value.trim();
       const amount = parseFloat(document.getElementById('amount').value);
       const type = document.getElementById('type').value;
 
-      if (!desc || isNaN(amount) || amount <= 0) return;
+      if (!date || !desc || isNaN(amount) || amount <= 0) return;
 
-      transactions.push({ desc, amount, type });
-      document.getElementById('transaction-form').reset();
+      userData.transactions.push({ date, desc, amount, type });
+      saveUserData();
+      document.getElementById('desc').value = '';
+      document.getElementById('amount').value = '';
       updateUI();
     }
 
-    // Delete Transaction
     function deleteTransaction(index) {
-      transactions.splice(index, 1);
+      userData.transactions.splice(index, 1);
+      saveUserData();
       updateUI();
     }
 
-    // Compound Interest Calculation
     function calculateCompoundInterest() {
       const P = parseFloat(document.getElementById('calc-principal').value) || 0;
       const r = (parseFloat(document.getElementById('calc-rate').value) || 0) / 100;
@@ -316,7 +625,6 @@
       document.getElementById('calc-result').innerText = formatCurrency(Math.round(A));
     }
 
-    // Chart.js Integration
     function updateChart(income, expense) {
       const ctx = document.getElementById('financeChart').getContext('2d');
       if (myChart) myChart.destroy();
@@ -335,31 +643,30 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
+          plugins: { legend: { position: 'bottom' } }
         }
       });
     }
 
-    // Toggle Language (Bilingual Support)
     function toggleLanguage() {
       currentLang = currentLang === 'vi' ? 'en' : 'vi';
       const t = translations[currentLang];
 
       document.getElementById('app-title').innerText = t.appTitle;
       document.getElementById('lang-text').innerText = t.langText;
+      document.getElementById('txt-filter-label').innerText = t.filterLabel;
+      document.getElementById('opt-all').innerText = t.optAll;
+      document.getElementById('opt-month').innerText = t.optMonth;
       document.getElementById('txt-total-income').innerText = t.totalIncome;
       document.getElementById('txt-total-expense').innerText = t.totalExpense;
       document.getElementById('txt-net-balance').innerText = t.netBalance;
       document.getElementById('txt-add-transaction').innerText = t.addTransaction;
-      document.getElementById('desc').placeholder = t.descPlaceholder;
-      document.getElementById('amount').placeholder = t.amountPlaceholder;
       document.getElementById('opt-income').innerText = t.optIncome;
       document.getElementById('opt-expense').innerText = t.optExpense;
       document.getElementById('btn-submit').innerText = t.btnSubmit;
       document.getElementById('txt-history').innerText = t.history;
       document.getElementById('btn-export').innerText = t.btnExport;
+      document.getElementById('th-date').innerText = t.thDate;
       document.getElementById('th-desc').innerText = t.thDesc;
       document.getElementById('th-type').innerText = t.thType;
       document.getElementById('th-amount').innerText = t.thAmount;
@@ -367,6 +674,8 @@
       document.getElementById('txt-chart-title').innerText = t.chartTitle;
       document.getElementById('txt-calc-title').innerText = t.calcTitle;
       document.getElementById('txt-calc-desc').innerText = t.calcDesc;
+      document.getElementById('lbl-bank').innerText = t.lblBank;
+      document.getElementById('opt-custom').innerText = t.optCustom;
       document.getElementById('lbl-principal').innerText = t.lblPrincipal;
       document.getElementById('lbl-rate').innerText = t.lblRate;
       document.getElementById('lbl-years').innerText = t.lblYears;
@@ -374,32 +683,31 @@
       document.getElementById('txt-calc-result-title').innerText = t.calcResultTitle;
 
       updateUI();
-      calculateCompoundInterest();
     }
 
-    // Export Data to CSV
     function exportToCSV() {
-      if (transactions.length === 0) return alert('Chưa có dữ liệu để xuất!');
+      if (!userData || userData.transactions.length === 0) {
+        alert(currentLang === 'vi' ? 'Chưa có dữ liệu để xuất!' : 'No data to export!');
+        return;
+      }
       
-      let csvContent = "data:text/csv;charset=utf-8,Mo ta,Loai,So tien (VND)\n";
-      transactions.forEach(t => {
-        csvContent += `"${t.desc}",${t.type},${t.amount}\n`;
+      let csvRows = ["\uFEFFNgay,Mo ta,Loai,So tien (VND)"];
+      userData.transactions.forEach(t => {
+        let escapedDesc = `"${t.desc.replace(/"/g, '""')}"`;
+        csvRows.push(`${t.date},${escapedDesc},${t.type},${t.amount}`);
       });
 
-      const encodedUri = encodeURI(csvContent);
+      const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "so_du_xanh_report.csv");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `so_du_xanh_${currentUser}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
 
-    // Initial Load
-    window.onload = function() {
-      updateUI();
-      calculateCompoundInterest();
-    };
+    window.onload = initApp;
   </script>
 </body>
 </html>
